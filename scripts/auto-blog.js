@@ -126,7 +126,7 @@ const uniqueFilename = (baseName) => {
 };
 
 // ---- 本処理 ----
-const main = () => {
+const main = async () => {
   ensureDir(postsDir);
 
   // ニュース本文があれば優先的にキーワード抽出に使う
@@ -157,7 +157,8 @@ const main = () => {
   const description = `${keywords.slice(0, 5).join(" / ")} にフォーカスした自動生成ブログ。`;
 
   // 実行のたびに異なるファイル名になるようにタイムスタンプを付与
-  const baseSlug = slugify(`daily-ai-news-${yyyy}${mm}${dd}-${hh}${min}${ss}`);
+  const ms = String(now.getMilliseconds()).padStart(3, "0");
+  const baseSlug = slugify(`daily-ai-news-${yyyy}${mm}${dd}-${hh}${min}${ss}-${ms}`);
   const fileName = uniqueFilename(baseSlug);
   const filePath = path.join(postsDir, fileName);
 
@@ -184,8 +185,6 @@ const main = () => {
   `;
 
   let articleBody = fallbackBody;
-
-  const geminiTextPromise = callGemini({ news, keywords, dateString });
 
   const body = `
 <!DOCTYPE html>
@@ -277,7 +276,6 @@ const main = () => {
       `<div id="llm-body">${safeBody}</div>`
     );
     fs.writeFileSync(filePath, filled.trim() + "\n", "utf8");
-    // 履歴に今回参照したニュースの URL/タイトルを保存
     if (freshNews) {
       history.add(freshNews.url);
       history.add(freshNews.title);
@@ -286,12 +284,19 @@ const main = () => {
     console.log(`Blog generated: ${path.relative(rootDir, filePath)}`);
   };
 
-  Promise.resolve(geminiTextPromise)
-    .then((llmText) => finalize(llmText))
-    .catch(() => finalize(null));
+  try {
+    const llmText = await callGemini({ news, keywords, dateString });
+    finalize(llmText);
+  } catch (e) {
+    console.error("Gemini生成に失敗したためフォールバックで生成します:", e.message);
+    finalize(null);
+  }
 };
 
-main();
+main().catch((err) => {
+  console.error("auto-blog.js failed:", err);
+  process.exit(1);
+});
 // ---- fetch が無い環境でも動く簡易 HTTP クライアント ----
 function httpFetch(url, options = {}) {
   return new Promise((resolve, reject) => {
