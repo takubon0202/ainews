@@ -229,6 +229,8 @@
       background: linear-gradient(135deg, rgba(79,209,197,0.08), rgba(108,139,255,0.08));
       opacity: 0;
       transition: opacity 0.25s ease;
+      pointer-events: none; /* オーバーレイがクリックを邪魔しないようにする */
+      z-index: 0;
     }
 
     .news-card:hover {
@@ -354,6 +356,10 @@
     @media (max-width: 900px) {
       .filter-top { grid-template-columns: 1fr; }
     }
+
+    /* ブログカードを丸ごとクリック可能にする */
+    .clickable-card { cursor: pointer; }
+    .news-card > * { position: relative; z-index: 1; }
   </style>
 </head>
 <body>
@@ -495,6 +501,9 @@
       lang: "ALL"
     };
 
+    // ---- パス解決（GitHub Pages のサブパスにも対応）----
+    const toAbsUrl = (relativePath) => new URL(relativePath, window.location.href).toString();
+
     // ---- フィルタ処理 ----
     const filterNews = () => {
       const kw = state.keyword.toLowerCase();
@@ -519,7 +528,7 @@
       }
       posts.forEach((post) => {
         const card = document.createElement("article");
-        card.className = "news-card";
+        card.className = "news-card clickable-card";
         card.innerHTML = `
           <div class="card-top">
             <span class="badge">Blog</span>
@@ -532,6 +541,15 @@
             <a class="source" href="${post.url}" target="_blank" rel="noopener">読む →</a>
           </div>
         `;
+        const targetUrl = toAbsUrl(post.url);
+        // カード全体をクリックで開く。内部リンクも通常動作。
+        card.addEventListener("click", () => window.open(targetUrl, "_blank", "noopener"));
+        card.querySelectorAll("a").forEach((a) => {
+          a.addEventListener("click", (e) => {
+            e.stopPropagation();
+            a.href = targetUrl;
+          });
+        });
         blogList.appendChild(card);
       });
     };
@@ -539,7 +557,7 @@
     // ---- ブログ manifest を読み込み ----
     const loadBlogs = async () => {
       try {
-        const res = await fetch("./post/posts.json", { cache: "no-cache" });
+        const res = await fetch(toAbsUrl("post/posts.json"), { cache: "no-cache" });
         if (!res.ok) throw new Error("posts.json not found");
         const posts = await res.json();
         renderBlogs(posts);
