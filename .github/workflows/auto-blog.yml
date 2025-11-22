@@ -53,7 +53,8 @@ jobs:
       - name: Push changes
         if: success()
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # GitHub が自動で提供するデフォルトトークンを使用
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           if git status --porcelain | grep .; then
             git push origin HEAD:main
