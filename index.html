@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daily AI News</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0d10;
+      --panel: #11151b;
+      --panel-2: #171c24;
+      --text: #e8ecf2;
+      --muted: #9aa3b6;
+      --accent: #4fd1c5;
+      --accent-2: #6c8bff;
+      --border: #1f2733;
+      --shadow: 0 20px 50px rgba(0,0,0,0.35);
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Inter", "Noto Sans JP", system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 20% 20%, rgba(79,209,197,0.1), transparent 25%),
+                  radial-gradient(circle at 80% 0%, rgba(108,139,255,0.08), transparent 30%),
+                  var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      padding: 0 18px 60px;
+    }
+
+    header {
+      max-width: 1200px;
+      margin: 32px auto 18px;
+      padding: 28px 28px 32px;
+      background: linear-gradient(135deg, rgba(79,209,197,0.12), rgba(108,139,255,0.1));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(45deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
+      pointer-events: none;
+    }
+
+    .title {
+      font-size: 32px;
+      font-weight: 700;
+      margin: 0 0 6px;
+      letter-spacing: 0.02em;
+    }
+
+    .subtitle {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .today {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .description {
+      margin: 16px 0 0;
+      max-width: 760px;
+      color: var(--muted);
+    }
+
+    .layout {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .filter-bar {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1fr;
+      padding: 18px;
+      margin: 6px 0 20px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+
+    .filter-top {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1fr 220px 180px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--text);
+      font-size: 15px;
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(79,209,197,0.15);
+    }
+
+    .chip-row, .lang-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--muted);
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .chip.active {
+      background: linear-gradient(135deg, rgba(79,209,197,0.2), rgba(108,139,255,0.2));
+      color: var(--text);
+      border-color: var(--accent);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+    }
+
+    .news-grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+
+    .news-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.22);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .news-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(79,209,197,0.08), rgba(108,139,255,0.08));
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    .news-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 30px rgba(0,0,0,0.3);
+      border-color: rgba(79,209,197,0.35);
+    }
+
+    .news-card:hover::before { opacity: 1; }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      z-index: 1;
+    }
+
+    .badge {
+      padding: 6px 10px;
+      border-radius: 10px;
+      background: rgba(79,209,197,0.14);
+      color: var(--accent);
+      border: 1px solid rgba(79,209,197,0.3);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .lang-badge {
+      padding: 6px 8px;
+      border-radius: 10px;
+      background: rgba(108,139,255,0.16);
+      color: var(--text);
+      border: 1px solid rgba(108,139,255,0.35);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .news-title {
+      margin: 4px 0 2px;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      z-index: 1;
+    }
+
+    .news-summary {
+      margin: 0;
+      color: var(--muted);
+      z-index: 1;
+    }
+
+    .meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      z-index: 1;
+      align-items: center;
+    }
+
+    .source {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .source:hover { text-decoration: underline; }
+
+    .pickup {
+      margin: 24px 0 16px;
+      padding: 18px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .pickup h3 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+
+    .alert {
+      margin: 14px 0;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px dashed var(--border);
+      color: var(--muted);
+    }
+
+    footer {
+      max-width: 1200px;
+      margin: 22px auto 0;
+      padding: 16px;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+
+    @media (max-width: 900px) {
+      .filter-top { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title">Daily AI News</div>
+    <div class="subtitle">毎朝のAIニュースまとめ</div>
+    <div class="today" id="today"></div>
+    <p class="description">世界中のAIニュースを毎朝ピックアップしてお届けします。キーワードやカテゴリを組み合わせて、欲しい情報だけをすぐ探せます。</p>
+  </header>
+
+  <main class="layout">
+    <section class="filter-bar">
+      <div class="filter-top">
+        <input type="search" id="search" class="search-input" placeholder="キーワードで検索 (タイトル・要約)" aria-label="検索">
+        <div class="lang-row" id="langFilters">
+          <button class="chip active" data-lang="ALL">すべて</button>
+          <button class="chip" data-lang="JP">日本語のみ</button>
+          <button class="chip" data-lang="EN">英語のみ</button>
+        </div>
+        <div class="chip-row" id="categoryFilters">
+          <button class="chip active" data-category="すべて">すべて</button>
+          <button class="chip" data-category="モデル">モデル</button>
+          <button class="chip" data-category="企業動向">企業動向</button>
+          <button class="chip" data-category="研究">研究</button>
+          <button class="chip" data-category="プロダクト">プロダクト</button>
+          <button class="chip" data-category="日本のニュース">日本のニュース</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="news-grid" id="newsGrid"></section>
+
+    <section class="pickup" id="pickup">
+      <h3>今日のピックアップニュース</h3>
+      <div class="news-card" id="pickupCard"></div>
+    </section>
+
+    <div class="alert">※ 内容は自動収集された情報をもとにしており、正確性は保証されません。必ず一次情報をご確認ください。</div>
+  </main>
+
+  <footer>
+    c 2025 Daily AI News ・ 免責：掲載内容の正確性は各ソースに準拠します。
+  </footer>
+
+  <script>
+    // ---- ダミーのニュースデータ（後で差し替え可能）----
+    const newsData = [
+      {
+        id: 1,
+        title: "OpenAI が次世代マルチモーダルモデルを発表",
+        summary: "画像・音声・テキストを横断して推論する新モデルをリリース。API 統合も同時に開始。",
+        category: "モデル",
+        lang: "JP",
+        date: "2025-11-22",
+        source: "OpenAI 公式ブログ",
+        url: "https://example.com/openai-new-model"
+      },
+      {
+        id: 2,
+        title: "Anthropic、企業向け Claude Suite を拡大",
+        summary: "セキュリティ強化版の API とガバナンス機能を追加し、エンタープライズでの導入を促進。",
+        category: "企業動向",
+        lang: "JP",
+        date: "2025-11-21",
+        source: "Anthropic Newsroom",
+        url: "https://example.com/anthropic-suite"
+      },
+      {
+        id: 3,
+        title: "MIT 研究チームが小型 LLM の圧縮手法を発表",
+        summary: "量子化と知識蒸留を組み合わせ、推論速度を 30% 向上させる新手法を提案。",
+        category: "研究",
+        lang: "EN",
+        date: "2025-11-20",
+        source: "MIT News",
+        url: "https://example.com/mit-llm"
+      },
+      {
+        id: 4,
+        title: "日本のニュース：自治体で生成AI活用の実証が進む",
+        summary: "住民問い合わせ対応の自動化や議事録生成のプロジェクトが各地で始動。",
+        category: "日本のニュース",
+        lang: "JP",
+        date: "2025-11-19",
+        source: "TechLocal",
+        url: "https://example.com/japan-gov"
+      },
+      {
+        id: 5,
+        title: "新興スタートアップが AI 音声プロダクトを発表",
+        summary: "リアルタイム音声翻訳と感情検出を備えた B2B ソリューションをローンチ。",
+        category: "プロダクト",
+        lang: "EN",
+        date: "2025-11-18",
+        source: "Startup Wire",
+        url: "https://example.com/voice-product"
+      },
+      {
+        id: 6,
+        title: "Hugging Face、教育機関向けのモデルカタログを提供開始",
+        summary: "学生と研究者が安全に実験できるよう権限管理を強化した専用カタログを公開。",
+        category: "企業動向",
+        lang: "EN",
+        date: "2025-11-17",
+        source: "Hugging Face Blog",
+        url: "https://example.com/hf-catalog"
+      },
+      {
+        id: 7,
+        title: "国内SIerが社内検索向け RAG パッケージをリリース",
+        summary: "日本語特化の埋め込みモデルとガバナンス機能をセットで提供し、導入期間を短縮。",
+        category: "プロダクト",
+        lang: "JP",
+        date: "2025-11-16",
+        source: "Press Release",
+        url: "https://example.com/rag-package"
+      },
+      {
+        id: 8,
+        title: "研究：エネルギー効率に優れた AI チップの新設計",
+        summary: "メモリ帯域を最適化したアーキテクチャで推論電力を 40% 削減する成果を報告。",
+        category: "研究",
+        lang: "EN",
+        date: "2025-11-15",
+        source: "ArXiv",
+        url: "https://example.com/ai-chip"
+      }
+    ];
+
+    // ---- DOM 参照をまとめて取得 ----
+    const newsGrid = document.getElementById("newsGrid");
+    const searchInput = document.getElementById("search");
+    const categoryFilters = document.getElementById("categoryFilters");
+    const langFilters = document.getElementById("langFilters");
+    const todayEl = document.getElementById("today");
+    const pickupCard = document.getElementById("pickupCard");
+
+    // ---- 日付を表示（YYYY-MM-DD 形式）----
+    const setToday = () => {
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, "0");
+      const dd = String(now.getDate()).padStart(2, "0");
+      todayEl.textContent = `${yyyy}-${mm}-${dd}`;
+    };
+
+    // ---- カードHTMLを生成する関数 ----
+    const createCardHTML = (item) => {
+      return `
+        <div class="card-top">
+          <span class="badge">${item.category}</span>
+          <span class="lang-badge">${item.lang}</span>
+        </div>
+        <div class="news-title">${item.title}</div>
+        <p class="news-summary">${item.summary}</p>
+        <div class="meta">
+          <span>${item.date}</span>
+          <a class="source" href="${item.url}" target="_blank" rel="noopener">続きを読む →</a>
+        </div>
+      `;
+    };
+
+    // ---- ニュース一覧を描画 ----
+    const renderNews = (filtered) => {
+      newsGrid.innerHTML = "";
+      if (filtered.length === 0) {
+        newsGrid.innerHTML = `<div class="news-card">条件に合うニュースが見つかりませんでした。</div>`;
+        return;
+      }
+      filtered.forEach(item => {
+        const card = document.createElement("article");
+        card.className = "news-card";
+        card.innerHTML = createCardHTML(item);
+        newsGrid.appendChild(card);
+      });
+    };
+
+    // ---- ピックアップを描画（先頭を採用）----
+    const renderPickup = (items) => {
+      if (!items.length) return;
+      pickupCard.innerHTML = createCardHTML(items[0]);
+    };
+
+    // ---- フィルタ状態を保持 ----
+    const state = {
+      keyword: "",
+      category: "すべて",
+      lang: "ALL"
+    };
+
+    // ---- フィルタ処理 ----
+    const filterNews = () => {
+      const kw = state.keyword.toLowerCase();
+      const results = newsData.filter(item => {
+        const matchKeyword =
+          item.title.toLowerCase().includes(kw) ||
+          item.summary.toLowerCase().includes(kw);
+        const matchCategory = state.category === "すべて" || item.category === state.category;
+        const matchLang = state.lang === "ALL" || item.lang === state.lang;
+        return matchKeyword && matchCategory && matchLang;
+      });
+      renderNews(results);
+      renderPickup(results);
+    };
+
+    // ---- イベント: 検索 ----
+    searchInput.addEventListener("input", (e) => {
+      state.keyword = e.target.value.trim();
+      filterNews();
+    });
+
+    // ---- イベント: カテゴリ ----
+    categoryFilters.addEventListener("click", (e) => {
+      if (e.target.matches(".chip")) {
+        [...categoryFilters.children].forEach(btn => btn.classList.remove("active"));
+        e.target.classList.add("active");
+        state.category = e.target.dataset.category;
+        filterNews();
+      }
+    });
+
+    // ---- イベント: 言語 ----
+    langFilters.addEventListener("click", (e) => {
+      if (e.target.matches(".chip")) {
+        [...langFilters.children].forEach(btn => btn.classList.remove("active"));
+        e.target.classList.add("active");
+        state.lang = e.target.dataset.lang;
+        filterNews();
+      }
+    });
+
+    // ---- 初期化 ----
+    setToday();
+    filterNews();
+  </script>
+</body>
+</html>
