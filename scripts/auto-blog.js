@@ -121,13 +121,16 @@ const main = () => {
   const yyyy = now.getFullYear();
   const mm = String(now.getMonth() + 1).padStart(2, "0");
   const dd = String(now.getDate()).padStart(2, "0");
+  const hh = String(now.getHours()).padStart(2, "0");
+  const min = String(now.getMinutes()).padStart(2, "0");
   const dateString = `${yyyy}-${mm}-${dd}`;
 
   const keywords = extractKeywords(text);
   const title = `Daily AI News トレンド解説 - ${dateString}`;
   const description = `${keywords.slice(0, 5).join(" / ")} にフォーカスした自動生成ブログ。`;
 
-  const baseSlug = slugify(`daily-ai-news-${yyyy}${mm}${dd}`);
+  // 実行のたびに異なるファイル名になるようにタイムスタンプを付与
+  const baseSlug = slugify(`daily-ai-news-${yyyy}${mm}${dd}-${hh}${min}`);
   const fileName = uniqueFilename(baseSlug);
   const filePath = path.join(postsDir, fileName);
 
