@@ -123,6 +123,7 @@ const main = () => {
   const dd = String(now.getDate()).padStart(2, "0");
   const hh = String(now.getHours()).padStart(2, "0");
   const min = String(now.getMinutes()).padStart(2, "0");
+  const ss = String(now.getSeconds()).padStart(2, "0");
   const dateString = `${yyyy}-${mm}-${dd}`;
 
   const keywords = extractKeywords(text);
@@ -130,7 +131,7 @@ const main = () => {
   const description = `${keywords.slice(0, 5).join(" / ")} にフォーカスした自動生成ブログ。`;
 
   // 実行のたびに異なるファイル名になるようにタイムスタンプを付与
-  const baseSlug = slugify(`daily-ai-news-${yyyy}${mm}${dd}-${hh}${min}`);
+  const baseSlug = slugify(`daily-ai-news-${yyyy}${mm}${dd}-${hh}${min}${ss}`);
   const fileName = uniqueFilename(baseSlug);
   const filePath = path.join(postsDir, fileName);
 
