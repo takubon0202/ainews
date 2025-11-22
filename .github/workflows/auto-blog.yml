@@ -1,0 +1,48 @@
+name: Auto Blog from index.html
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 2 * * *" # 毎日 02:00 UTC に実行
+
+jobs:
+  generate-blog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Generate blog from index.html
+        run: node scripts/auto-blog.js
+
+      - name: Update posts manifest
+        run: node post/generate-manifest.js
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git status --porcelain | grep .; then
+            git add .
+            git commit -m "chore: auto-generate blog and manifest"
+          else
+            echo "No changes to commit."
+          fi
+
+      - name: Push changes
+        if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if git status --porcelain | grep .; then
+            git push origin HEAD:main
+          else
+            echo "Nothing to push."
+          fi
