@@ -39,6 +39,9 @@ jobs:
       - name: Update posts manifest
         run: node post/generate-manifest.js
 
+      - name: Show git status
+        run: git status --short
+
       - name: Commit changes
         run: |
           git config user.name "github-actions[bot]"
