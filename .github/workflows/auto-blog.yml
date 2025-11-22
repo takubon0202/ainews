@@ -19,7 +19,10 @@ jobs:
         with:
           node-version: "18"
 
-      - name: Generate blog from index.html
+      - name: Fetch latest AI news
+        run: node scripts/auto-news.js
+
+      - name: Generate blog from latest news
         run: node scripts/auto-blog.js
 
       - name: Update posts manifest

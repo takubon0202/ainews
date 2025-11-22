@@ -417,19 +417,8 @@
   </footer>
 
   <script>
-    // ---- ニュースデータ（記事作成後に差し替え）----
-    const newsData = [
-      // {
-      //   id: 1,
-      //   title: "タイトル",
-      //   summary: "ここに要約を記載",
-      //   category: "モデル",
-      //   lang: "JP",
-      //   date: "2025-11-22",
-      //   source: "出典",
-      //   url: "https://example.com"
-      // }
-    ];
+    // ---- ニュースデータ（fetch で読み込む）----
+    let newsData = [];
 
     // ---- DOM 参照をまとめて取得 ----
     const newsGrid = document.getElementById("newsGrid");
@@ -503,6 +492,19 @@
 
     // ---- パス解決（GitHub Pages のサブパスにも対応）----
     const toAbsUrl = (relativePath) => new URL(relativePath, window.location.href).toString();
+
+    // ---- ニュースを読み込み ----
+    const loadNews = async () => {
+      try {
+        const res = await fetch(toAbsUrl("data/news.json"), { cache: "no-cache" });
+        if (!res.ok) throw new Error("news.json not found");
+        newsData = await res.json();
+        filterNews();
+      } catch (err) {
+        console.error("ニュース読み込みエラー:", err);
+        newsGrid.innerHTML = `<div class="news-card empty-card">data/news.json を読み込めませんでした。scripts/auto-news.js を実行してください。</div>`;
+      }
+    };
 
     // ---- フィルタ処理 ----
     const filterNews = () => {
@@ -596,6 +598,7 @@
     // ---- 初期化 ----
     setToday();
     filterNews();
+    loadNews();
     loadBlogs();
   </script>
 </body>

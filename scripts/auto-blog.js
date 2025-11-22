@@ -7,6 +7,7 @@ const path = require("path");
 
 const rootDir = path.join(__dirname, "..");
 const indexPath = path.join(rootDir, "index.html");
+const newsPath = path.join(rootDir, "data", "news.json");
 const postsDir = path.join(rootDir, "post");
 
 // ---- ユーティリティ ----
@@ -22,6 +23,16 @@ const readIndexText = () => {
     .replace(/<style[\s\S]*?<\/style>/gi, " ")
     .replace(/<[^>]+>/g, " ");
   return stripped;
+};
+
+const readNewsData = () => {
+  if (!fs.existsSync(newsPath)) return [];
+  try {
+    return JSON.parse(fs.readFileSync(newsPath, "utf8"));
+  } catch (e) {
+    console.warn("news.json の読み込みに失敗しました。index.html から抽出に切り替えます。", e);
+    return [];
+  }
 };
 
 const extractKeywords = (text) => {
@@ -100,7 +111,11 @@ const uniqueFilename = (baseName) => {
 // ---- 本処理 ----
 const main = () => {
   ensureDir(postsDir);
-  const text = readIndexText();
+
+  // ニュース本文があれば優先的にキーワード抽出に使う
+  const news = readNewsData();
+  const newsText = news.map((n) => `${n.title} ${n.summary}`).join(" ");
+  const text = newsText || readIndexText();
 
   const now = new Date();
   const yyyy = now.getFullYear();
@@ -118,6 +133,14 @@ const main = () => {
 
   const keywordBadges = keywords
     .map((k) => `<span class="tag">${k}</span>`)
+    .join("");
+
+  const highlights = news.slice(0, 5);
+  const highlightList = highlights
+    .map(
+      (n) =>
+        `<li><a href="${n.url}" target="_blank" rel="noopener">${n.title}</a><span class="hl-date">${n.date || ""}</span></li>`
+    )
     .join("");
 
   const body = `
@@ -174,6 +197,8 @@ const main = () => {
     }
     h2 { margin: 18px 0 10px; font-size: 20px; }
     p { margin: 10px 0; color: var(--muted); }
+    ul { padding-left: 18px; color: var(--muted); }
+    .hl-date { margin-left: 8px; color: var(--muted); font-size: 12px; }
     .cta {
       margin-top: 22px;
       padding: 14px 16px;
@@ -195,6 +220,11 @@ const main = () => {
     <p>Daily AI News では、${keywords.slice(0, 3).join("・")} を中心に、最新動向や事業に直結するポイントをコンパクトにまとめます。</p>
     <h2>注目ポイント</h2>
     <p>マルチモーダル対応や API 統合など、実務で活きるトピックをピックアップ。国内外の動向を追いつつ、ビジネスでの活用視点を優先して解説します。</p>
+    ${
+      highlights.length
+        ? `<h2>直近の注目記事</h2><ul>${highlightList}</ul>`
+        : ""
+    }
     <h2>なぜ今重要か</h2>
     <p>${keywords.slice(0, 2).join(" と ")} の進化は、競争優位やオペレーション効率に直結します。最新ニュースを追うことで、次の打ち手を早めに検討できます。</p>
     <div class="cta">次回以降も ${keywords.slice(0, 4).join(" / ")} を軸に、実務に役立つ視点でアップデートしていきます。</div>
