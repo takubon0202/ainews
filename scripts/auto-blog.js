@@ -293,8 +293,8 @@ const main = () => {
 
 main();
 // ---- fetch が無い環境でも動く簡易 HTTP クライアント ----
-const httpFetch = (url, options = {}) =>
-  new Promise((resolve, reject) => {
+function httpFetch(url, options = {}) {
+  return new Promise((resolve, reject) => {
     const u = new URL(url);
     const req = https.request(
       {
@@ -320,6 +320,7 @@ const httpFetch = (url, options = {}) =>
     if (options.body) req.write(options.body);
     req.end();
   });
+}
 
 // ---- Gemini API 呼び出し（キーが無ければ null 返却）----
 async function callGemini({ news, keywords, dateString }) {
