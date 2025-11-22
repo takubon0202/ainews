@@ -326,7 +326,8 @@ function httpFetch(url, options = {}) {
 async function callGemini({ news, keywords, dateString }) {
   const apiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
   if (!apiKey) return null;
-  const model = process.env.GEMINI_MODEL || "gemini-3-pro-preview";
+  // 公式推奨の最新安定モデルをデフォルトに使用
+  const model = process.env.GEMINI_MODEL || "gemini-3.0-pro";
 
   const topNews = news.slice(0, 8);
   const headlineList = topNews

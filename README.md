@@ -9,7 +9,7 @@ GitHub Actions で最新の AI ニュースを取得し、Gemini 3.0 Pro でブ�
 2. 左メニューから `Secrets and variables` → `Actions` を選択。
 3. `New repository secret` をクリックし、以下を追加して保存。
    - `GOOGLE_API_KEY`（または `GEMINI_API_KEY`）：Gemini の API キー
-   - 任意: `GEMINI_MODEL`（未設定なら `gemini-3-pro-preview` を使用）
+   - 任意: `GEMINI_MODEL`（未設定なら `gemini-3.0-pro` を使用）
 
 ## 使い方
 - 手動実行: Actions の「Auto Blog from index.html」を `Run workflow` で起動。
