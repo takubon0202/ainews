@@ -295,7 +295,7 @@ main();
 async function callGemini({ news, keywords, dateString }) {
   const apiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
   if (!apiKey) return null;
-  const model = process.env.GEMINI_MODEL || "gemini-3.0-pro";
+  const model = process.env.GEMINI_MODEL || "gemini-3-pro-preview";
 
   const topNews = news.slice(0, 8);
   const headlineList = topNews
