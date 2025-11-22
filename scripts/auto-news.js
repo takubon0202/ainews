@@ -4,6 +4,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const https = require("https");
 
 const rootDir = path.join(__dirname, "..");
 const dataDir = path.join(rootDir, "data");
@@ -126,8 +127,37 @@ const sortAndLimit = (items, limit = 200) =>
     .sort((a, b) => (b.date || "").localeCompare(a.date || ""))
     .slice(0, limit);
 
+// ---- fetch が無い環境でも動く簡易 HTTP クライアント ----
+const httpFetch = (url, options = {}) =>
+  new Promise((resolve, reject) => {
+    const u = new URL(url);
+    const req = https.request(
+      {
+        hostname: u.hostname,
+        path: u.pathname + u.search,
+        method: options.method || "GET",
+        headers: options.headers || {},
+      },
+      (res) => {
+        let data = "";
+        res.on("data", (chunk) => (data += chunk));
+        res.on("end", () =>
+          resolve({
+            ok: res.statusCode >= 200 && res.statusCode < 300,
+            status: res.statusCode,
+            text: async () => data,
+            json: async () => JSON.parse(data),
+          })
+        );
+      }
+    );
+    req.on("error", reject);
+    if (options.body) req.write(options.body);
+    req.end();
+  });
+
 const fetchFeed = async (feed) => {
-  const res = await fetch(feed.url);
+  const res = await httpFetch(feed.url);
   if (!res.ok) throw new Error(`Failed to fetch ${feed.url}: ${res.status}`);
   const xml = await res.text();
   return parseItems(xml, feed.lang, feed.category);

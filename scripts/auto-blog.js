@@ -4,6 +4,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const https = require("https");
 const rootDir = path.join(__dirname, "..");
 const indexPath = path.join(rootDir, "index.html");
 const newsPath = path.join(rootDir, "data", "news.json");
@@ -291,6 +292,35 @@ const main = () => {
 };
 
 main();
+// ---- fetch が無い環境でも動く簡易 HTTP クライアント ----
+const httpFetch = (url, options = {}) =>
+  new Promise((resolve, reject) => {
+    const u = new URL(url);
+    const req = https.request(
+      {
+        hostname: u.hostname,
+        path: u.pathname + u.search,
+        method: options.method || "GET",
+        headers: options.headers || {},
+      },
+      (res) => {
+        let data = "";
+        res.on("data", (chunk) => (data += chunk));
+        res.on("end", () =>
+          resolve({
+            ok: res.statusCode >= 200 && res.statusCode < 300,
+            status: res.statusCode,
+            text: async () => data,
+            json: async () => JSON.parse(data),
+          })
+        );
+      }
+    );
+    req.on("error", reject);
+    if (options.body) req.write(options.body);
+    req.end();
+  });
+
 // ---- Gemini API 呼び出し（キーが無ければ null 返却）----
 async function callGemini({ news, keywords, dateString }) {
   const apiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
@@ -314,7 +344,7 @@ ${headlineList}`;
 
   try {
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-    const res = await fetch(endpoint, {
+    const res = await httpFetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
