@@ -108,6 +108,60 @@
       grid-template-columns: 1fr 220px 180px;
     }
 
+    .blog-section {
+      margin: 28px 0 10px;
+      padding: 18px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: 0.01em;
+    }
+
+    .section-note {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .add-note {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 700;
+      border: 1px dashed var(--border);
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: rgba(79,209,197,0.08);
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.06);
+      color: var(--accent);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-size: 12px;
+    }
+
     .search-input {
       width: 100%;
       padding: 12px 14px;
@@ -193,6 +247,15 @@
       z-index: 1;
     }
 
+    .blog-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
     .badge {
       padding: 6px 10px;
       border-radius: 10px;
@@ -262,6 +325,14 @@
       font-size: 18px;
     }
 
+    .empty-card {
+      text-align: center;
+      color: var(--muted);
+      background: rgba(255,255,255,0.02);
+      border-style: dashed;
+      border-color: var(--border);
+    }
+
     .alert {
       margin: 14px 0;
       padding: 12px 14px;
@@ -287,6 +358,7 @@
 </head>
 <body>
   <header>
+    <div class="hero-badge">トップページ</div>
     <div class="title">Daily AI News</div>
     <div class="subtitle">毎朝のAIニュースまとめ</div>
     <div class="today" id="today"></div>
@@ -320,6 +392,17 @@
       <div class="news-card" id="pickupCard"></div>
     </section>
 
+    <section class="blog-section" id="blogSection">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">最新ブログ</h2>
+          <p class="section-note">post フォルダに HTML を追加して manifest を更新すると一覧に表示されます。</p>
+        </div>
+        <span class="add-note">post/ に記事を追加</span>
+      </div>
+      <div class="news-grid" id="blogList"></div>
+    </section>
+
     <div class="alert">※ 内容は自動収集された情報をもとにしており、正確性は保証されません。必ず一次情報をご確認ください。</div>
   </main>
 
@@ -328,88 +411,18 @@
   </footer>
 
   <script>
-    // ---- ダミーのニュースデータ（後で差し替え可能）----
+    // ---- ニュースデータ（記事作成後に差し替え）----
     const newsData = [
-      {
-        id: 1,
-        title: "OpenAI が次世代マルチモーダルモデルを発表",
-        summary: "画像・音声・テキストを横断して推論する新モデルをリリース。API 統合も同時に開始。",
-        category: "モデル",
-        lang: "JP",
-        date: "2025-11-22",
-        source: "OpenAI 公式ブログ",
-        url: "https://example.com/openai-new-model"
-      },
-      {
-        id: 2,
-        title: "Anthropic、企業向け Claude Suite を拡大",
-        summary: "セキュリティ強化版の API とガバナンス機能を追加し、エンタープライズでの導入を促進。",
-        category: "企業動向",
-        lang: "JP",
-        date: "2025-11-21",
-        source: "Anthropic Newsroom",
-        url: "https://example.com/anthropic-suite"
-      },
-      {
-        id: 3,
-        title: "MIT 研究チームが小型 LLM の圧縮手法を発表",
-        summary: "量子化と知識蒸留を組み合わせ、推論速度を 30% 向上させる新手法を提案。",
-        category: "研究",
-        lang: "EN",
-        date: "2025-11-20",
-        source: "MIT News",
-        url: "https://example.com/mit-llm"
-      },
-      {
-        id: 4,
-        title: "日本のニュース：自治体で生成AI活用の実証が進む",
-        summary: "住民問い合わせ対応の自動化や議事録生成のプロジェクトが各地で始動。",
-        category: "日本のニュース",
-        lang: "JP",
-        date: "2025-11-19",
-        source: "TechLocal",
-        url: "https://example.com/japan-gov"
-      },
-      {
-        id: 5,
-        title: "新興スタートアップが AI 音声プロダクトを発表",
-        summary: "リアルタイム音声翻訳と感情検出を備えた B2B ソリューションをローンチ。",
-        category: "プロダクト",
-        lang: "EN",
-        date: "2025-11-18",
-        source: "Startup Wire",
-        url: "https://example.com/voice-product"
-      },
-      {
-        id: 6,
-        title: "Hugging Face、教育機関向けのモデルカタログを提供開始",
-        summary: "学生と研究者が安全に実験できるよう権限管理を強化した専用カタログを公開。",
-        category: "企業動向",
-        lang: "EN",
-        date: "2025-11-17",
-        source: "Hugging Face Blog",
-        url: "https://example.com/hf-catalog"
-      },
-      {
-        id: 7,
-        title: "国内SIerが社内検索向け RAG パッケージをリリース",
-        summary: "日本語特化の埋め込みモデルとガバナンス機能をセットで提供し、導入期間を短縮。",
-        category: "プロダクト",
-        lang: "JP",
-        date: "2025-11-16",
-        source: "Press Release",
-        url: "https://example.com/rag-package"
-      },
-      {
-        id: 8,
-        title: "研究：エネルギー効率に優れた AI チップの新設計",
-        summary: "メモリ帯域を最適化したアーキテクチャで推論電力を 40% 削減する成果を報告。",
-        category: "研究",
-        lang: "EN",
-        date: "2025-11-15",
-        source: "ArXiv",
-        url: "https://example.com/ai-chip"
-      }
+      // {
+      //   id: 1,
+      //   title: "タイトル",
+      //   summary: "ここに要約を記載",
+      //   category: "モデル",
+      //   lang: "JP",
+      //   date: "2025-11-22",
+      //   source: "出典",
+      //   url: "https://example.com"
+      // }
     ];
 
     // ---- DOM 参照をまとめて取得 ----
@@ -419,6 +432,7 @@
     const langFilters = document.getElementById("langFilters");
     const todayEl = document.getElementById("today");
     const pickupCard = document.getElementById("pickupCard");
+    const blogList = document.getElementById("blogList");
 
     // ---- 日付を表示（YYYY-MM-DD 形式）----
     const setToday = () => {
@@ -449,7 +463,7 @@
     const renderNews = (filtered) => {
       newsGrid.innerHTML = "";
       if (filtered.length === 0) {
-        newsGrid.innerHTML = `<div class="news-card">条件に合うニュースが見つかりませんでした。</div>`;
+        newsGrid.innerHTML = `<div class="news-card empty-card">まだニュースがありません。newsData に記事を追加するとここに表示されます。</div>`;
         return;
       }
       filtered.forEach(item => {
@@ -462,7 +476,15 @@
 
     // ---- ピックアップを描画（先頭を採用）----
     const renderPickup = (items) => {
-      if (!items.length) return;
+      if (!items.length) {
+        pickupCard.classList.add("empty-card");
+        pickupCard.innerHTML = `
+          <div class="news-title">ピックアップ記事は準備中です。</div>
+          <p class="news-summary">最初のニュースを登録するとここに表示されます。</p>
+        `;
+        return;
+      }
+      pickupCard.classList.remove("empty-card");
       pickupCard.innerHTML = createCardHTML(items[0]);
     };
 
@@ -486,6 +508,45 @@
       });
       renderNews(results);
       renderPickup(results);
+    };
+
+    // ---- ブログ一覧を描画 ----
+    const renderBlogs = (posts) => {
+      blogList.innerHTML = "";
+      if (!posts || posts.length === 0) {
+        blogList.innerHTML = `<div class="news-card empty-card">まだブログ記事がありません。post フォルダに HTML を追加し、manifest を更新してください。</div>`;
+        return;
+      }
+      posts.forEach((post) => {
+        const card = document.createElement("article");
+        card.className = "news-card";
+        card.innerHTML = `
+          <div class="card-top">
+            <span class="badge">Blog</span>
+            <span class="lang-badge">HTML</span>
+          </div>
+          <div class="news-title">${post.title}</div>
+          <p class="news-summary">${post.description || "概要未設定"}</p>
+          <div class="blog-meta">
+            <span>${post.date || ""}</span>
+            <a class="source" href="${post.url}" target="_blank" rel="noopener">読む →</a>
+          </div>
+        `;
+        blogList.appendChild(card);
+      });
+    };
+
+    // ---- ブログ manifest を読み込み ----
+    const loadBlogs = async () => {
+      try {
+        const res = await fetch("./post/posts.json", { cache: "no-cache" });
+        if (!res.ok) throw new Error("posts.json not found");
+        const posts = await res.json();
+        renderBlogs(posts);
+      } catch (err) {
+        console.error("ブログ読み込みエラー:", err);
+        blogList.innerHTML = `<div class="news-card empty-card">post/posts.json を読み込めませんでした。generate-manifest.js を実行してください。</div>`;
+      }
     };
 
     // ---- イベント: 検索 ----
@@ -517,6 +578,7 @@
     // ---- 初期化 ----
     setToday();
     filterNews();
+    loadBlogs();
   </script>
 </body>
 </html>
